@@ -1,0 +1,213 @@
+train <-read.csv("train1.csv")
+data.cor<-data.frame(cor(train[,-5]))
+
+#회귀식
+
+fit0<-lm(train$stock_yg~1,data=train)
+fit1<-lm(train$stock_yg~train$stock_sm+train$mau_weverse+train$sales_jyp+train$you_hybe,data=train)
+
+#변수 선택 step() 사용
+
+step (fit0, direction="forward", scope=list(lower=~1, upper=~train$stock_sm+train$mau_weverse+train$sales_jyp+train$you_hybe) )
+
+step(fit1, direction="backward")
+
+#모두 결과같음
+
+fit.train<-lm(train$stock_yg~train$stock_sm+train$sales_jyp+train$you_hybe,data=train)
+
+# a=0.05에서 적합한지 확인
+summary(fit.train)
+anova(fit.train)
+
+#다중공선성 확인
+
+vif(fit.train)
+
+#10이상인 변수 제거
+
+fit.train2<-lm(train$stock_yg~train$sales_jyp+train$you_hybe,data=train)
+summary(fit.train2)
+
+
+test<-read.csv("test1.csv")
+test
+
+fit.test<-lm(train$stock_yg~train$stock_sm+train$sales_jyp+train$you_hybe,data=test)
+
+vif(fit.train2)
+
+par(mfrow=c(2,2))
+plot(fit.train2)
+
+test_yg =data.frame(1.155e+04+1.829e-07*test$sales_jyp+6.266e+01*test$you_hybe)
+write_csv(test_yg,file="test_yg.csv")
+
+
+#####결과######
+
+>summary(fit.train)
+
+Call:
+lm(formula = train$stock_yg ~ train$stock_sm + train$sales_jyp + 
+    train$you_hybe, data = train)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-9058.9 -2160.0   -82.2  2006.2 10055.1 
+
+Coefficients:
+                  Estimate Std. Error t value Pr(>|t|)    
+(Intercept)      4.461e+04  2.693e+03  16.564  < 2e-16 ***
+train$stock_sm   5.795e-01  3.965e-02  14.615  < 2e-16 ***
+train$sales_jyp -2.841e-07  4.512e-08  -6.296 1.09e-09 ***
+train$you_hybe  -1.553e+01  7.358e+00  -2.111   0.0356 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 3303 on 298 degrees of freedom
+Multiple R-squared:  0.8246,	Adjusted R-squared:  0.8228 
+F-statistic: 466.9 on 3 and 298 DF,  p-value: < 2.2e-16
+
+> anova(fit.train)
+Analysis of Variance Table
+
+Response: train$stock_yg
+                 Df     Sum Sq    Mean Sq   F value    Pr(>F)    
+train$stock_sm    1 1.4829e+10 1.4829e+10 1358.9293 < 2.2e-16 ***
+train$sales_jyp   1 4.0854e+08 4.0854e+08   37.4382 2.963e-09 ***
+train$you_hybe    1 4.8628e+07 4.8628e+07    4.4563   0.03561 *  
+Residuals       298 3.2519e+09 1.0912e+07                        
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> anova(fit1,fit.train)
+Analysis of Variance Table
+
+Model 1: train$stock_yg ~ train$stock_sm + train$mau_weverse + train$sales_jyp + 
+    train$you_hybe
+Model 2: train$stock_yg ~ train$stock_sm + train$sales_jyp + train$you_hybe
+  Res.Df        RSS Df Sum of Sq      F Pr(>F)
+1    297 3231213146                           
+2    298 3251889040 -1 -20675893 1.9004 0.1691
+> summary(fit.train)
+
+Call:
+lm(formula = train$stock_yg ~ train$stock_sm + train$sales_jyp + 
+    train$you_hybe, data = train)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-9058.9 -2160.0   -82.2  2006.2 10055.1 
+
+Coefficients:
+                  Estimate Std. Error t value Pr(>|t|)    
+(Intercept)      4.461e+04  2.693e+03  16.564  < 2e-16 ***
+train$stock_sm   5.795e-01  3.965e-02  14.615  < 2e-16 ***
+train$sales_jyp -2.841e-07  4.512e-08  -6.296 1.09e-09 ***
+train$you_hybe  -1.553e+01  7.358e+00  -2.111   0.0356 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 3303 on 298 degrees of freedom
+Multiple R-squared:  0.8246,	Adjusted R-squared:  0.8228 
+F-statistic: 466.9 on 3 and 298 DF,  p-value: < 2.2e-16
+
+> vif(fit.train)
+ train$stock_sm train$sales_jyp  train$you_hybe 
+      16.178586        7.699633        8.142856 
+> fit.train<-lm(train$stock_yg~train$stock_sm+train$sales_jyp+train$you_hybe,data=train)
+> summary(fit.train)
+
+Call:
+lm(formula = train$stock_yg ~ train$stock_sm + train$sales_jyp + 
+    train$you_hybe, data = train)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-9058.9 -2160.0   -82.2  2006.2 10055.1 
+
+Coefficients:
+                  Estimate Std. Error t value Pr(>|t|)    
+(Intercept)      4.461e+04  2.693e+03  16.564  < 2e-16 ***
+train$stock_sm   5.795e-01  3.965e-02  14.615  < 2e-16 ***
+train$sales_jyp -2.841e-07  4.512e-08  -6.296 1.09e-09 ***
+train$you_hybe  -1.553e+01  7.358e+00  -2.111   0.0356 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 3303 on 298 degrees of freedom
+Multiple R-squared:  0.8246,	Adjusted R-squared:  0.8228 
+F-statistic: 466.9 on 3 and 298 DF,  p-value: < 2.2e-16
+
+> anova(fit.train)
+Analysis of Variance Table
+
+Response: train$stock_yg
+                 Df     Sum Sq    Mean Sq   F value    Pr(>F)    
+train$stock_sm    1 1.4829e+10 1.4829e+10 1358.9293 < 2.2e-16 ***
+train$sales_jyp   1 4.0854e+08 4.0854e+08   37.4382 2.963e-09 ***
+train$you_hybe    1 4.8628e+07 4.8628e+07    4.4563   0.03561 *  
+Residuals       298 3.2519e+09 1.0912e+07                        
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+> vif(fit.train)
+ train$stock_sm train$sales_jyp  train$you_hybe 
+      16.178586        7.699633        8.142856
+
+
+
+
+######## 첫번째 변수제거하고 다시 fit ########
+
+> fit.train2<-lm(train$stock_yg~train$sales_jyp+train$you_hybe,data=train)
+> summary(fit.train2)
+
+Call:
+lm(formula = train$stock_yg ~ train$sales_jyp + train$you_hybe, 
+    data = train)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-10026.7  -2764.2    -75.8   2254.6  12162.6 
+
+Coefficients:
+                 Estimate Std. Error t value Pr(>|t|)    
+(Intercept)     1.155e+04  1.912e+03   6.041 4.55e-09 ***
+train$sales_jyp 1.829e-07  4.167e-08   4.390 1.57e-05 ***
+train$you_hybe  6.266e+01  6.608e+00   9.483  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 4321 on 299 degrees of freedom
+Multiple R-squared:  0.6988,	Adjusted R-squared:  0.6968 
+F-statistic: 346.9 on 2 and 299 DF,  p-value: < 2.2e-16
+>vif(fit.train2)
+train$sales_jyp  train$you_hybe 
+       3.838003        3.838003 
+> summary(fit.train2)
+
+Call:
+lm(formula = train$stock_yg ~ train$sales_jyp + train$you_hybe, 
+    data = train)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-10026.7  -2764.2    -75.8   2254.6  12162.6 
+
+Coefficients:
+                 Estimate Std. Error t value Pr(>|t|)    
+(Intercept)     1.155e+04  1.912e+03   6.041 4.55e-09 ***
+train$sales_jyp 1.829e-07  4.167e-08   4.390 1.57e-05 ***
+train$you_hybe  6.266e+01  6.608e+00   9.483  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 4321 on 299 degrees of freedom
+Multiple R-squared:  0.6988,	Adjusted R-squared:  0.6968 
+F-statistic: 346.9 on 2 and 299 DF,  p-value: < 2.2e-16
+
+
+
+
+
